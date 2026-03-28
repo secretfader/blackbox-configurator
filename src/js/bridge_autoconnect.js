@@ -21,6 +21,15 @@ const WS_PATH = "/ws";
  */
 export async function bridgeAutoConnect() {
     try {
+        // Unregister any cached service workers — they cause HTTPS upgrade
+        // issues when the bridge serves plain HTTP.
+        if ("serviceWorker" in navigator) {
+            const registrations = await navigator.serviceWorker.getRegistrations();
+            for (const reg of registrations) {
+                await reg.unregister();
+            }
+        }
+
         // Check if we're being served from the bridge by hitting /api/status.
         const resp = await fetch(BRIDGE_STATUS_PATH, { signal: AbortSignal.timeout(2000) });
         if (!resp.ok) return;

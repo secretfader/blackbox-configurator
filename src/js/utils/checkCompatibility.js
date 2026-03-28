@@ -53,7 +53,23 @@ export function isIOS() {
     return false;
 }
 
+/**
+ * Detect whether we're running on the blackbox-bridge (served over plain HTTP
+ * from the Pi).  When true we only need WebSocket transport — Serial, Bluetooth,
+ * USB and Chromium are irrelevant.
+ */
+export function isBridgeMode() {
+    return location.protocol === "http:" && !location.hostname.includes("localhost");
+}
+
 export function checkCompatibility() {
+    // On the bridge, all communication goes through WebSocket — skip
+    // the Chromium / WebSerial / WebBluetooth / WebUSB gate entirely.
+    if (isBridgeMode()) {
+        console.log("[COMPAT] Bridge mode detected — skipping browser checks");
+        return true;
+    }
+
     const hasSerialSupport = checkSerialSupport();
     const hasBluetoothSupport = checkBluetoothSupport();
     const hasUsbSupport = checkUsbSupport();
