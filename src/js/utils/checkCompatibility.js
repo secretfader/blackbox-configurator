@@ -54,19 +54,24 @@ export function isIOS() {
 }
 
 /**
- * Detect whether we're running on the blackbox-bridge (served over plain HTTP
- * from the Pi).  When true we only need WebSocket transport — Serial, Bluetooth,
- * USB and Chromium are irrelevant.
+ * Detect whether the configurator is running in an embedded deployment where
+ * WebSocket is the only available transport (e.g. a WiFi bridge device).
+ *
+ * The host signals this by injecting a meta tag into the served HTML:
+ *   <meta name="bf-transport" content="websocket">
+ *
+ * When present, Serial/Bluetooth/USB and the Chromium browser gate are
+ * irrelevant — only WebSocket transport is needed.
  */
-export function isBridgeMode() {
-    return location.protocol === "http:" && !location.hostname.includes("localhost");
+export function isEmbeddedDeployment() {
+    return document.querySelector('meta[name="bf-transport"]')?.content === "websocket";
 }
 
 export function checkCompatibility() {
     // On the bridge, all communication goes through WebSocket — skip
     // the Chromium / WebSerial / WebBluetooth / WebUSB gate entirely.
-    if (isBridgeMode()) {
-        console.log("[COMPAT] Bridge mode detected — skipping browser checks");
+    if (isEmbeddedDeployment()) {
+        console.log("[COMPAT] Embedded deployment detected — skipping browser checks");
         return true;
     }
 

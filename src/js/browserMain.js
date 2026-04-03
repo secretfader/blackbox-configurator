@@ -50,10 +50,10 @@ import "./main";
 
 import GUI from "./gui";
 import { registerSW } from "virtual:pwa-register";
-import { isBridgeMode } from "./utils/checkCompatibility.js";
+import { isEmbeddedDeployment } from "./utils/checkCompatibility.js";
 
-// Skip PWA/service-worker on bridge mode (plain HTTP, no HTTPS)
-if (!isBridgeMode()) {
+// Skip PWA/service-worker when running in an embedded deployment (WebSocket-only host)
+if (!isEmbeddedDeployment()) {
     const updateSW = registerSW({
         onNeedRefresh() {
             console.log("Detected onNeedRefresh");
