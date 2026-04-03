@@ -17,6 +17,7 @@ import { mountVueTab, unmountVueTab } from "./vue_tab_mounter.js";
 import * as THREE from "three";
 import NotificationManager from "./utils/notifications.js";
 import { Capacitor } from "@capacitor/core";
+import { bridgeAutoConnect } from "./bridge_autoconnect.js";
 
 // Silence Capacitor bridge debug spam on native platforms
 if (Capacitor?.isNativePlatform?.() && typeof Capacitor.isLoggingEnabled === "boolean") {
@@ -89,6 +90,20 @@ function appReady() {
         $("a.firmware_flasher_button__link").removeClass("disabled");
 
         initializeSerialBackend();
+
+        // If served from the Blackbox Bridge, auto-connect via WebSocket.
+        bridgeAutoConnect();
+
+        // Open options tab on first run (Vue)
+        const firstRunCfg = getConfig("firstRun") ?? {};
+        if (firstRunCfg.firstRun === undefined) {
+            setConfig({ firstRun: true });
+            // Open the options tab after a short delay to ensure UI is ready
+            setTimeout(() => {
+                // Use Vue tab mounting directly, no jQuery
+                mountVueTab("options", () => {});
+            }, 100);
+        }
     });
 
     const showNotifications = getConfig("showNotifications", false).showNotifications;
